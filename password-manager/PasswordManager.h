@@ -9,12 +9,14 @@ public:
 	PasswordManager(string password);
 	~PasswordManager();
 
-	void setEncryptedPassword(string password);
-	void getEncryptedPassword(void);
 	const unsigned char* getKey(void);	// HOW TO HIDE THE KEY?
 	const unsigned char* getInitVector(void);	// HOW TO HIDE THE INIT_VECTOR?
-	void setNewPassword(string password);
+	int storeCredentials(string username, string password);
+	int setEncryptedPassword(string password);
+	void getEncryptedPassword(void);
+	int setNewPassword(string password);
 	void validatePassword(string password);
+	int checkIfExists(string username, string password);
 
 private:
 	const unsigned char* encryptionKey;

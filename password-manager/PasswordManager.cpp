@@ -12,8 +12,8 @@ using namespace std;
 // constructor
 PasswordManager::PasswordManager(string text)
 {
-	this->encryptionKey = "0123456789abcdef0123456789abcdef";
-	this->initVector = "0123456789abcdef";
+	this->encryptionKey = (const unsigned char*)"0123456789abcdef0123456789abcdef";
+	this->initVector = (const unsigned char*)"0123456789abcdef";
 	string result = Encrypt(text);
 }
 
@@ -69,4 +69,34 @@ string PasswordManager::Encrypt(const string& plainText)
 	ERR_free_strings();
 
 	return result;
+}
+
+int PasswordManager::storeCredentials(string username, string password) 
+{
+
+}
+
+int PasswordManager::setEncryptedPassword(string password)
+{
+
+}
+
+void PasswordManager::getEncryptedPassword(void)
+{
+
+}
+
+int PasswordManager::setNewPassword(string password)
+{
+
+}
+
+void PasswordManager::validatePassword(string password)
+{
+
+}
+
+int PasswordManager::checkIfExists(string username, string password)
+{
+
 }
