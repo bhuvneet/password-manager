@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "PasswordManager.h"
+#include "Constants.h"
 #pragma warning (disable:4996)
 
 /*Name:
@@ -12,9 +13,13 @@ Output:
 // main driver file
 int main()
 {
-	//PasswordManager password("HelloWorld!");
-	char choice[3];
-	while (true)
+	PasswordManager loginCred;	// instance of PasswordManager class
+
+	char choice[3] = {"\0"};
+	char username[USERNAME_MAXLEN] = { "\0" };
+	char password[PASSWORD_MAXLEN] = { "\0" };
+
+	while ((strcmp(choice, "d") != 0) || (strcmp(choice, "D") != 0))
 	{
 		printf("Password Utilities:\n");
 		printf("\tA. Store Credentials\n");	// store credentials in text file
@@ -24,10 +29,24 @@ int main()
 		// get input from user
 		printf("\tEnter your choice: ");
 		// check if choice is to quit program
-		scanf("%1s", choice);
-		if ((strcmp(choice,"d") == 0) || (strcmp(choice, "D") == 0))
+		scanf("%s", choice);
+		
+		if (choice[0] == 'A')
 		{
-			break;
+			printf("A");
+			printf("\tEnter username: ");
+			scanf("%s", username);	// find better way to store in string
+			printf("\tEnter password: ");
+			scanf("%s", password);	// find better way to store in string
+			loginCred.storeCredentials(username, password);
+		}
+		if (choice[0] == 'B')
+		{
+			printf("A");
+		}
+		if (choice[0] == 'C')
+		{
+			printf("A");
 		}
 	}
 

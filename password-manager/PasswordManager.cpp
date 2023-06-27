@@ -4,17 +4,17 @@
 #include <openssl/aes.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
+#include <stdio.h>
 #include "Constants.h"
 using namespace std;
 #pragma warning (disable:4996)
 
 
 // constructor
-PasswordManager::PasswordManager(string text)
+PasswordManager::PasswordManager(void)
 {
 	this->encryptionKey = (const unsigned char*)"0123456789abcdef0123456789abcdef";
 	this->initVector = (const unsigned char*)"0123456789abcdef";
-	string result = Encrypt(text);
 }
 
 // destructor
@@ -38,7 +38,7 @@ Parameter: String
 Return: Status - Success or Fail
 Output: None
 */
-string PasswordManager::Encrypt(const string& plainText)
+void PasswordManager::Encrypt(unsigned char plaintext [], unsigned char ciphertext[])
 {
 	OpenSSL_add_all_algorithms();	// initialize OpenSSL
 	ERR_load_CRYPTO_strings();
@@ -47,11 +47,14 @@ string PasswordManager::Encrypt(const string& plainText)
 	EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, 
 		(const unsigned char*)this->getKey(), (const unsigned char*)this->getInitVector());
 
-	// Encrypt the string
-	int ciphertextLen = plainText.size() + AES_BLOCK_SIZE;
-	unsigned char* ciphertext = new unsigned char[ciphertextLen];
 	int len;
-	EVP_EncryptUpdate(ctx, ciphertext, &len, (const unsigned char*)plainText.c_str(), plainText.size());
+	int plaintextSize = sizeof(plaintext) / sizeof(unsigned char);
+
+	// Encrypt the string
+	int ciphertextLen = plaintextSize + AES_BLOCK_SIZE;
+	//ciphertext = new unsigned char[ciphertextLen];
+	
+	EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintextSize);
 	int ciphertextFinalLen;
 	EVP_EncryptFinal_ex(ctx, ciphertext + len, &ciphertextFinalLen);
 
@@ -61,42 +64,94 @@ string PasswordManager::Encrypt(const string& plainText)
 		printf("%02x", ciphertext[i]);
 	std::cout << std::endl;
 
-	string result(reinterpret_cast<char*>(ciphertext), ciphertextLen);
+	//string result(reinterpret_cast<char*>(ciphertext), ciphertextLen);
 
 	// Clean up
-	delete[] ciphertext;	//free memory
+	//delete[] ciphertext;	//free memory
 	EVP_CIPHER_CTX_free(ctx);
 	ERR_free_strings();
-
-	return result;
 }
 
-int PasswordManager::storeCredentials(string username, string password) 
+/*Name:
+Description:
+Parameter:
+Return:
+Output:
+*/
+int PasswordManager::storeCredentials(char* username, char* password) 
 {
+	// check if file exists
+	FILE* fp = fopen(PASSWORD_FILE, "a");
+	if (fp != NULL)
+	{
+		// file exists - validate creds, check if duplicate exists, encrypt password and store
+		Encrypt((unsigned char*)password, this->ciphertext);
+		fprintf(fp, (const char*)this->ciphertext);
+	}
+	else
+	{
+		fp = fopen(PASSWORD_FILE, "w");	// create file
+	}
+	fclose(fp);
 
+	return 0;
+	// if not, create file and add credentials to it once validated
 }
 
+/*Name:
+Description:
+Parameter:
+Return:
+Output:
+*/
 int PasswordManager::setEncryptedPassword(string password)
 {
-
+	// encrypted the plaintext password
+	return 0;
 }
 
+/*Name:
+Description:
+Parameter:
+Return:
+Output:
+*/
 void PasswordManager::getEncryptedPassword(void)
 {
 
 }
 
+/*Name:
+Description:
+Parameter:
+Return:
+Output:
+*/
 int PasswordManager::setNewPassword(string password)
 {
-
+	// change password for credentials already saved in file
+	return 0;
 }
 
+/*Name:
+Description:
+Parameter:
+Return:
+Output:
+*/
 void PasswordManager::validatePassword(string password)
 {
-
+	// check if password is valid
 }
 
+/*Name:
+Description:
+Parameter:
+Return:
+Output:
+*/
 int PasswordManager::checkIfExists(string username, string password)
 {
-
+	// check if credentials exist in file
+	return 0;
 }

@@ -6,12 +6,12 @@ using namespace std;
 class PasswordManager
 {
 public:
-	PasswordManager(string password);
+	PasswordManager(void);
 	~PasswordManager();
 
 	const unsigned char* getKey(void);	// HOW TO HIDE THE KEY?
 	const unsigned char* getInitVector(void);	// HOW TO HIDE THE INIT_VECTOR?
-	int storeCredentials(string username, string password);
+	int storeCredentials(char* username, char* password);
 	int setEncryptedPassword(string password);
 	void getEncryptedPassword(void);
 	int setNewPassword(string password);
@@ -22,6 +22,9 @@ private:
 	const unsigned char* encryptionKey;
 	const unsigned char* initVector;
 	string encryptedPass;	// stores encrypted password
+	unsigned char ciphertext[256];
+	unsigned char plaintext[256];
+	int result;
 
 	// private member functions
 	/*Name: Encrypt()
@@ -30,5 +33,5 @@ private:
 	Return: Status - Success or Fail
 	Output: None
 	*/
-	string Encrypt(const string& plainText);
+	void Encrypt(unsigned char plaintext[], unsigned char ciphertext[]);
 };
