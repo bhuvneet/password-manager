@@ -12,12 +12,24 @@ using namespace std;
 // constructor
 PasswordManager::PasswordManager(string text)
 {
+	this->encryptionKey = "0123456789abcdef0123456789abcdef";
+	this->initVector = "0123456789abcdef";
 	string result = Encrypt(text);
 }
 
 // destructor
 PasswordManager::~PasswordManager()
 {
+}
+
+const unsigned char* PasswordManager::getKey()
+{
+	return this->encryptionKey;
+}
+
+const unsigned char* PasswordManager::getInitVector()
+{
+	return this->initVector;
 }
 
 /*Name: Encrypt()
@@ -32,7 +44,8 @@ string PasswordManager::Encrypt(const string& plainText)
 	ERR_load_CRYPTO_strings();
 
 	EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-	EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, (const unsigned char*)KEY, (const unsigned char*)INITIALIZATION_VECTOR);
+	EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, 
+		(const unsigned char*)this->getKey(), (const unsigned char*)this->getInitVector());
 
 	// Encrypt the string
 	int ciphertextLen = plainText.size() + AES_BLOCK_SIZE;
