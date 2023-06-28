@@ -17,6 +17,7 @@ public:
 	int setNewPassword(string password);
 	void validatePassword(string password);
 	int checkIfExists(string username, string password);
+	char* generateSalt(int length);
 
 private:
 	const unsigned char* encryptionKey;

@@ -38,6 +38,8 @@ int main()
 			scanf("%s", username);	// find better way to store in string
 			printf("\tEnter password: ");
 			scanf("%s", password);	// find better way to store in string
+			// check if already exists in file
+			// verify password
 			loginCred.storeCredentials(username, password);
 		}
 		if (choice[0] == 'B')
