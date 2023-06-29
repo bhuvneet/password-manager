@@ -4,9 +4,10 @@
 #include <openssl/aes.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
+#include <ctype.h> 
 #include <iostream>
 #include <random>
-#include <map>
+#include <unordered_map>	// to store key-value login credentials. unordered-map will enable faster retrieval.
 #include "Constants.h"
 using namespace std;
 #pragma warning (disable:4996)
@@ -123,27 +124,24 @@ Parameter:
 Return:
 Output:
 */
-int PasswordManager::storeCredentials(char* username, char* password) 
+int PasswordManager::storeCredentials(char* website, char* username, char* password) 
 {
-	// check if file exists
-	FILE* fp = fopen(PASSWORD_FILE, "a");
-	if (fp != NULL)
-	{
-		// encrypt password and store
-		Encrypt((unsigned char*)password, this->ciphertext);
 
-		// store in a key-value pair format - Key: whichLogin; Value: username + hashedPassword
-		// save password in an ordered map
-		fprintf(fp, (const char*)this->ciphertext);
-	}
-	else
-	{
-		fp = fopen(PASSWORD_FILE, "w");	// create file
-	}
-	fclose(fp);
+	// encrypt password and store
+	setEncryptedPassword(password);
+	//Encrypt((unsigned char*)password, this->ciphertext);
+
+	// store in a key-value pair format - Key: whichLogin; Value: username + hashedPassword
+	// save password in an unordered map
+	strcpy(this->whichLogin, website);
+	size_t length = sizeof(ciphertext) / sizeof(unsigned char);
+	string login;
+	login.append(username);
+	login.append(" ");
+	login.append(reinterpret_cast<const char*>(ciphertext), length);
+	this->loginCreds[this->whichLogin] = login;
 
 	return 0;
-	// if not, create file and add credentials to it once validated
 }
 
 /*Name:
@@ -152,9 +150,10 @@ Parameter:
 Return:
 Output:
 */
-int PasswordManager::setEncryptedPassword(string password)
+int PasswordManager::setEncryptedPassword(char* password)
 {
 	// encrypted the plaintext password
+	Encrypt((unsigned char*)password, this->ciphertext);
 	return 0;
 }
 
@@ -164,9 +163,9 @@ Parameter:
 Return:
 Output:
 */
-void PasswordManager::getEncryptedPassword(void)
+unsigned char* PasswordManager::getEncryptedPassword(void)
 {
-
+	return this->ciphertext;
 }
 
 /*Name:
@@ -178,18 +177,66 @@ Output:
 int PasswordManager::setNewPassword(string password)
 {
 	// change password for credentials already saved in file
+	// first check if password exists
+	// validate password
+	// update password in map
 	return 0;
 }
 
-/*Name:
-Description:
-Parameter:
-Return:
-Output:
+/*Name: validatePassword
+Description: Function takes a password and returns true if it is:
+	at least 8 characters long or contains 
+	at least one uppercase letter
+	at least one digit 
+	at least one of these four characters: ! @ # $ 
+	Otherwise it returns false.
+Parameter: const char*
+Return: True or False
+Output: Result of the validation
 */
-void PasswordManager::validatePassword(string password)
+bool PasswordManager::validatePassword(const char* password)
 {
+	size_t length = strlen(password);
+	int isDigit = 0;
+	int isUpper = 0;
+
 	// check if password is valid
+	if (length >= 8)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			if (password[i] == '!' || password[i] == '@' 
+				|| password[i] == '#' || password[i] == '$')
+			{
+				return false;
+			}
+			// check only when we don't already have 1 digit and 1 uppercase count.
+			if (isDigit != 1)
+			{
+				if (isdigit(password[i]) != 0)
+				{
+					isDigit += 1;
+				}
+			}
+			if (isUpper != 1)
+			{
+				if (isupper(password[i]) != 0)
+				{
+					isUpper += 1;
+				}
+			}
+		}
+
+		if (isDigit == 0 || isUpper == 0)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+
 }
 
 /*Name:

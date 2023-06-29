@@ -15,7 +15,9 @@ int main()
 {
 	PasswordManager loginCred;	// instance of PasswordManager class
 
+	int numOfAttempts = 0;
 	char choice[3] = {"\0"};
+	char website[WEBSITE_NAME] = { "\0" };
 	char username[USERNAME_MAXLEN] = { "\0" };
 	char password[PASSWORD_MAXLEN] = { "\0" };
 
@@ -24,8 +26,7 @@ int main()
 		printf("Password Utilities:\n");
 		printf("\tA. Store Credentials\n");	// store credentials in text file
 		printf("\tB. Change Password\n");	// change password of already existing credentials
-		printf("\tC. Validate Password\n");	// validate password
-		printf("\tD. Quit\n");				// quit program
+		printf("\tC. Quit\n");				// quit program
 		// get input from user
 		printf("\tEnter your choice: ");
 		// check if choice is to quit program
@@ -33,22 +34,47 @@ int main()
 		
 		if (choice[0] == 'A')
 		{
-			printf("A");
+			printf("\tEnter name of website: ");
+			scanf("%s", website);	// find better way to store in string
 			printf("\tEnter username: ");
 			scanf("%s", username);	// find better way to store in string
 			printf("\tEnter password: ");
 			scanf("%s", password);	// find better way to store in string
-			// check if already exists in file
-			// verify password
-			loginCred.storeCredentials(username, password);
+
+			// validate password first
+			bool result = loginCred.validatePassword(password);
+			if (result == false)
+			{
+				while ((result = loginCred.validatePassword(password) != true) && numOfAttempts <= 5)
+				{
+					printf("\tEnter password: ");
+					scanf("%s", password);	// find better way to store in string
+					
+					if (numOfAttempts == 5)
+					{
+						printf("Number of attempts exceeded 5. Exiting program...");
+						return;
+					}
+				}
+				if (result == true)
+				{
+					loginCred.storeCredentials(website, username, password);
+				}
+			}
+			else
+			{
+				loginCred.storeCredentials(website, username, password);
+			}
 		}
 		if (choice[0] == 'B')
 		{
-			printf("A");
+			// find password in map
+			// check if new password is valid
+			// update value for new password
 		}
 		if (choice[0] == 'C')
 		{
-			printf("A");
+			break;
 		}
 	}
 
