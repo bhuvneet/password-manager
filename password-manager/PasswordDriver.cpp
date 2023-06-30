@@ -14,7 +14,7 @@ Output:
 int main()
 {
 	PasswordManager loginCred;	// instance of PasswordManager class
-
+	bool result;
 	int numOfAttempts = 0;
 	char choice[3] = {"\0"};
 	char website[WEBSITE_NAME] = { "\0" };
@@ -42,24 +42,21 @@ int main()
 			scanf("%s", password);	// find better way to store in string
 
 			// validate password first
-			bool result = loginCred.validatePassword(password);
-			if (result == false)
+			while (((result = loginCred.validatePassword(password)) == false) && numOfAttempts <= 5)
 			{
-				while ((result = loginCred.validatePassword(password) != true) && numOfAttempts <= 5)
-				{
-					printf("\tEnter password: ");
-					scanf("%s", password);	// find better way to store in string
+				printf("\n\tPassword Validation criteria: \t at least 1 uppercase, 1 digit and 8 characters in length. ! @ # $ are not allowed.\n");
+				printf("\tEnter password: ");
+				scanf("%s", password);	// find better way to store in string
 					
-					if (numOfAttempts == 5)
-					{
-						printf("Number of attempts exceeded 5. Exiting program...");
-						return;
-					}
-				}
-				if (result == true)
+				if (numOfAttempts == 5)
 				{
-					loginCred.storeCredentials(website, username, password);
+					printf("Number of attempts exceeded 5. Exiting program...");
+					return 0;
 				}
+			}
+			if (result == true)
+			{
+				loginCred.storeCredentials(website, username, password);
 			}
 			else
 			{

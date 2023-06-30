@@ -236,7 +236,7 @@ bool PasswordManager::validatePassword(const char* password)
 	{
 		return false;
 	}
-
+	return true;
 }
 
 /*Name:
@@ -247,6 +247,7 @@ Output:
 */
 int PasswordManager::checkIfExists(string username, string password)
 {
-	// check if credentials exist in file
+	// check if credentials exist in map - O(1)
+
 	return 0;
 }
