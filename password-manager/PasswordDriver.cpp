@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "PasswordManager.h"
-#include "Constants.h"
+#include "FileIO.h"
+#include "Common.h"
 #pragma warning (disable:4996)
 
 /*Name:
@@ -21,11 +22,14 @@ int main()
 	char username[USERNAME_MAXLEN] = { "\0" };
 	char password[PASSWORD_MAXLEN] = { "\0" };
 
-	while ((strcmp(choice, "d") != 0) || (strcmp(choice, "D") != 0))
+	// create login file
+	FileIO myLoginFile;
+
+	while ((strcmp(choice, "C") != 0))
 	{
 		printf("Password Utilities:\n");
 		printf("\tA. Store Credentials\n");	// store credentials in text file
-		printf("\tB. Change Password\n");	// change password of already existing credentials
+		printf("\tB. Update Credentials\n");	// change password of already existing credentials
 		printf("\tC. Quit\n");				// quit program
 		// get input from user
 		printf("\tEnter your choice: ");
@@ -44,7 +48,8 @@ int main()
 			// validate password first
 			while (((result = loginCred.validatePassword(password)) == false) && numOfAttempts <= 5)
 			{
-				printf("\n\tPassword Validation criteria: \t at least 1 uppercase, 1 digit and 8 characters in length. ! @ # $ are not allowed.\n");
+				printf("\n\tPassword Validation criteria: \t at least 1 uppercase, "
+					"1 digit and 8 characters in length. ! @ # $ are not allowed.\n");
 				printf("\tEnter password: ");
 				scanf("%s", password);	// find better way to store in string
 					
@@ -54,24 +59,70 @@ int main()
 					return 0;
 				}
 			}
-			if (result == true)
+			if (result)
 			{
 				loginCred.storeCredentials(website, username, password);
-			}
-			else
-			{
-				loginCred.storeCredentials(website, username, password);
+
+				// save credential in file
+				string thisLogin = loginCred.getCredentials(website);
+				result = myLoginFile.appendToFile(website, thisLogin);
 			}
 		}
 		if (choice[0] == 'B')
 		{
-			// find password in map
-			// check if new password is valid
-			// update value for new password
+			numOfAttempts = 0;
+			while (((result = loginCred.checkIfExists(website)) == false) && numOfAttempts <= 5)
+			{
+				printf("\tEnter name of website: ");
+				scanf("%s", website);	// find better way to store in string
+
+				if (numOfAttempts == 5)
+				{
+					printf("Number of attempts exceeded 5.\n");
+					break;
+				}
+			}
+			if (result)	// website exists in map, let user change credentials
+			{
+				// change username, password or both?
+				printf("\tA. Change username\n");	// store credentials in text file
+				printf("\tB. Change Password\n");	// change password of already existing credentials
+				printf("\tC. Change both\n");				// quit program
+				printf("\tD. Return\n");				// quit program
+
+				printf("\tEnter your choice: ");
+				scanf("%c", choice);
+				if (choice[0] == 'A')
+				{
+					printf("\tEnter username: ");
+					scanf("%s", username);	// find better way to store in string
+					loginCred.setNewUserName(website, username);
+				}
+				else if (choice[0] == 'B')
+				{
+					printf("\tEnter password: ");
+					scanf("%s", password);	// find better way to store in string
+					loginCred.setNewPassword(website, password);
+				}
+				else if (choice[0] == 'C')
+				{
+					printf("\tEnter username: ");
+					scanf("%s", username);	// find better way to store in string
+					loginCred.setNewUserName(website, username);
+					printf("\tEnter password: ");
+					scanf("%s", password);	// find better way to store in string
+					loginCred.setNewPassword(website, password);
+				}
+				else
+				{
+
+				}
+			}
+
 		}
 		if (choice[0] == 'C')
 		{
-			break;
+			break;	//exit program
 		}
 	}
 

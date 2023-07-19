@@ -13,12 +13,14 @@ public:
 
 	const unsigned char* getKey(void);	// HOW TO HIDE THE KEY?
 	const unsigned char* getInitVector(void);	// HOW TO HIDE THE INIT_VECTOR?
+	const string getCredentials(string whichWebsite);
 	int storeCredentials(char* website, char* username, char* password);
 	int setEncryptedPassword(char* password);
 	unsigned char* getEncryptedPassword(void);
-	int setNewPassword(string password);
+	int setNewUserName(string website, string password);
+	int setNewPassword(string website, string password);
 	bool validatePassword(const char* password);
-	int checkIfExists(string username, string password);
+	int checkIfExists(string website);
 	char* generateSalt(int length);
 
 private:

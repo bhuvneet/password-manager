@@ -8,7 +8,7 @@
 #include <iostream>
 #include <random>
 #include <unordered_map>	// to store key-value login credentials. unordered-map will enable faster retrieval.
-#include "Constants.h"
+#include "Common.h"
 using namespace std;
 #pragma warning (disable:4996)
 
@@ -33,6 +33,11 @@ const unsigned char* PasswordManager::getKey()
 const unsigned char* PasswordManager::getInitVector()
 {
 	return this->initVector;
+}
+
+const string PasswordManager::getCredentials(string whichWebsite)
+{
+	return this->loginCreds[whichWebsite];
 }
 
 /*Name: Encrypt()
@@ -72,7 +77,6 @@ void PasswordManager::Encrypt(unsigned char plaintext [], unsigned char cipherte
 	int plaintextSize = sizeof(plaintext) / sizeof(unsigned char);
 	int encryptedLength = plaintextSize + EVP_CIPHER_block_size(cipher);
 	//unsigned char* encryptedData = new unsigned char[encryptedLength];
-	int len;
 	int finalLength = 0;
 	EVP_EncryptUpdate(ctx, ciphertext, &encryptedLength, plaintext, plaintextSize);
 	EVP_EncryptFinal_ex(ctx, ciphertext + encryptedLength, &finalLength);
@@ -168,13 +172,18 @@ unsigned char* PasswordManager::getEncryptedPassword(void)
 	return this->ciphertext;
 }
 
+int PasswordManager::setNewUserName(string whichWebsite, string username)
+{
+	return 0;
+}
+
 /*Name:
 Description:
 Parameter:
 Return:
 Output:
 */
-int PasswordManager::setNewPassword(string password)
+int PasswordManager::setNewPassword(string whichWebsite, string password)
 {
 	// change password for credentials already saved in file
 	// first check if password exists
@@ -245,9 +254,16 @@ Parameter:
 Return:
 Output:
 */
-int PasswordManager::checkIfExists(string username, string password)
+int PasswordManager::checkIfExists(string website)
 {
-	// check if credentials exist in map - O(1)
-
-	return 0;
+	this->result = 0;
+	if (loginCreds.find(website) == loginCreds.end())
+	{
+		// not found
+		return result;
+	}
+	else
+	{	// website exists in map
+		return result = 1;
+	}
 }
