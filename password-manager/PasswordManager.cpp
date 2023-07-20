@@ -1,13 +1,16 @@
 
 #include "PasswordManager.h"
 #include <openssl/evp.h>
-#include <openssl/aes.h>
+//#include <openssl/aes.h>
+#include <openssl\sha.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
 #include <ctype.h> 
 #include <iostream>
 #include <random>
 #include <unordered_map>	// to store key-value login credentials. unordered-map will enable faster retrieval.
+#include <iomanip> // for std::setw and std::setfill
+#include <sstream> // for std::stringstream
 #include "Common.h"
 using namespace std;
 #pragma warning (disable:4996)
@@ -16,8 +19,8 @@ using namespace std;
 // constructor
 PasswordManager::PasswordManager(void)
 {
-	this->encryptionKey = (const unsigned char*)"0123456789abcdef0123456789abcdef";
-	this->initVector = (const unsigned char*)"0123456789abcdef";
+	this->encryptionKey = 0;
+	this->initVector = 0;
 }
 
 // destructor
@@ -48,7 +51,7 @@ Output: None
 */
 void PasswordManager::Encrypt(unsigned char plaintext [], unsigned char ciphertext[])
 {
-	char* salt = generateSalt(16);
+	vector<uint8_t> salt = generateSalt(16);
 	char result[256];
 
 	// Initialize the OpenSSL library
@@ -60,18 +63,18 @@ void PasswordManager::Encrypt(unsigned char plaintext [], unsigned char cipherte
 	const int ivLength = EVP_CIPHER_iv_length(cipher);
 
 	// Generate a random encryption key and initialization vector (IV)
-	unsigned char* key = (unsigned char*)malloc(keyLength * sizeof(char));	// allocate memory for length of keyLength
-	unsigned char* iv = (unsigned char*)malloc(ivLength* sizeof(char));	// allocate memory for length of keyLength
-	if (key != NULL && iv != NULL)
+	encryptionKey = (unsigned char*)malloc(keyLength * sizeof(char));	// allocate memory for length of keyLength
+	initVector = (unsigned char*)malloc(ivLength* sizeof(char));	// allocate memory for length of keyLength
+	if (encryptionKey != NULL && initVector != NULL)	// generate random key and iv
 	{
-		RAND_bytes(key, keyLength);
-		key[keyLength] = { '\0' };	// null terminate char array to mitigate garbage values
-		RAND_bytes(iv, ivLength);
-		iv[ivLength] = { '\0' };	// null terminate char array to mitigate garbage values
+		RAND_bytes(encryptionKey, keyLength);
+		encryptionKey[keyLength] = { '\0' };	// null terminate char array to mitigate garbage values
+		RAND_bytes(initVector, ivLength);
+		initVector[ivLength] = { '\0' };	// null terminate char array to mitigate garbage values
 	}
 
 	EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-	EVP_EncryptInit_ex(ctx, cipher, nullptr, key, iv);
+	EVP_EncryptInit_ex(ctx, cipher, nullptr, encryptionKey, initVector);
 
 	// Encrypt the password
 	int plaintextSize = sizeof(plaintext) / sizeof(unsigned char);
@@ -93,9 +96,58 @@ void PasswordManager::Encrypt(unsigned char plaintext [], unsigned char cipherte
 
 	// Combine the salt, key, and IV into a single string - USE THIS TO AUTHENTICATE USER
 	strcpy(result, (char*)salt);  
-	strcat(result, (char*)key);
-	strcat(result, (char*)iv);
+	strcat(result, (char*)encryptionKey);
+	strcat(result, (char*)initVector);
+	this->authUserString = result;
+	cout << this->authUserString << endl;
 }
+
+string PasswordManager::calculate_hash()
+{
+	int len = this->authUserString.size();
+	unsigned long myHash = hash(this->authUserString, len);
+	SHA256(reinterpret_cast<const unsigned char*>(this->authUserString.c_str()), len, reinterpret_cast<unsigned char*>(myHash));
+
+	std::stringstream hashedStr;
+	for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
+	{
+		hashedStr << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(myHash);
+	}
+	return hashedStr.str();
+}
+
+//******************************************************************************************//
+// Function:	 hash()																		//
+// Description:  Function takes the key and returns the hash value 							//
+// Parameters:	 const char* str: to process C-Style string									//
+// Return Value: unsigned long - hash value													//
+//******************************************************************************************//
+// Reference:**********************************************//
+// TITLE : “djb2” function source code					   //
+// AUTHOR : Daniel J. Bernstein                            //
+//*********************************************************//
+unsigned long PasswordManager::hash(string& str, int len)
+{
+	unsigned long hash = 5381;
+
+	for (auto& ch : str) 
+	{
+		hash = ((hash << 5) + hash) + ch;
+	}
+	return hash;
+}
+
+/*Name:
+Description:
+Parameter:
+Return:
+Output:
+*/
+const string PasswordManager::getAuthString()
+{
+	return this->authUserString;
+}
+
 
 /*Name:
 Description:
@@ -105,20 +157,25 @@ Output:
 */
 char* PasswordManager::generateSalt(int length)
 {
-	const char charset[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-	const int charsetSize = sizeof(charset) - 1;
-	random_device rd;
-	mt19937 generator(rd());
-	char* salt = (char*)malloc(length * sizeof(char));	// allocate memory for length of salt
+	//const char charset[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	//const int charsetSize = sizeof(charset) - 1;
+	//random_device rd;
+	//mt19937 generator(rd());
+	//char* salt = (char*)malloc(length * sizeof(char));	// allocate memory for length of salt
 
-	if (salt != NULL)
-	{
-		for (int i = 0; i < length; ++i) {
-			salt[i] = charset[generator() % charsetSize];
-		}
-		salt[length] = { '\0' };	// null terminate char array to mitigate garbage values
+	//if (salt != NULL)
+	//{
+	//	for (int i = 0; i < length; ++i) {
+	//		salt[i] = charset[generator() % charsetSize];
+	//	}
+	//	salt[length] = { '\0' };	// null terminate char array to mitigate garbage values
+	//}
+
+	std::vector<uint8_t> salt(16); // SALT_LENGTH should be defined with an appropriate value (e.g., 16 bytes)
+	if (RAND_bytes(salt.data(), salt.size()) != 1) {
+		std::cerr << "Error generating random salt." << std::endl;
+		exit(EXIT_FAILURE);
 	}
-
 	return salt;
 }
 
@@ -171,26 +228,26 @@ unsigned char* PasswordManager::getEncryptedPassword(void)
 {
 	return this->ciphertext;
 }
-
-int PasswordManager::setNewUserName(string whichWebsite, string username)
-{
-	return 0;
-}
-
-/*Name:
-Description:
-Parameter:
-Return:
-Output:
-*/
-int PasswordManager::setNewPassword(string whichWebsite, string password)
-{
-	// change password for credentials already saved in file
-	// first check if password exists
-	// validate password
-	// update password in map
-	return 0;
-}
+//
+//int PasswordManager::setNewUserName(string whichWebsite, string username)
+//{
+//	return 0;
+//}
+//
+///*Name:
+//Description:
+//Parameter:
+//Return:
+//Output:
+//*/
+//int PasswordManager::setNewPassword(string whichWebsite, string password)
+//{
+//	// change password for credentials already saved in file
+//	// first check if password exists
+//	// validate password
+//	// update password in map
+//	return 0;
+//}
 
 /*Name: validatePassword
 Description: Function takes a password and returns true if it is:
@@ -252,18 +309,18 @@ bool PasswordManager::validatePassword(const char* password)
 Description:
 Parameter:
 Return:
-Output:
-*/
-int PasswordManager::checkIfExists(string website)
-{
-	this->result = 0;
-	if (loginCreds.find(website) == loginCreds.end())
-	{
-		// not found
-		return result;
-	}
-	else
-	{	// website exists in map
-		return result = 1;
-	}
-}
+//Output:
+//*/
+//int PasswordManager::checkIfExists(string website)
+//{
+//	this->result = 0;
+//	if (loginCreds.find(website) == loginCreds.end())
+//	{
+//		// not found
+//		return result;
+//	}
+//	else
+//	{	// website exists in map
+//		return result = 1;
+//	}
+//}

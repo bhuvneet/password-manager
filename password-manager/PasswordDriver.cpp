@@ -2,6 +2,7 @@
 #include "PasswordManager.h"
 #include "FileIO.h"
 #include "Common.h"
+#include "AuthenticateUser.h"
 #pragma warning (disable:4996)
 
 /*Name:
@@ -24,6 +25,7 @@ int main()
 
 	// create login file
 	FileIO myLoginFile;
+	AuthenticateUser authUser;
 
 	while ((strcmp(choice, "C") != 0))
 	{
@@ -70,55 +72,50 @@ int main()
 		}
 		if (choice[0] == 'B')
 		{
-			numOfAttempts = 0;
-			while (((result = loginCred.checkIfExists(website)) == false) && numOfAttempts <= 5)
+			printf("\tEnter name of website: ");
+			scanf("%s", website);	// find better way to store in string
+
+			// change username, password or both?
+			printf("\tA. Change Username\n");	// store credentials in text file
+			printf("\tB. Change Password\n");	// change password of already existing credentials
+			printf("\tC. Change Both\n");				// quit program
+			printf("\tD. Delete Login\n");				// quit program
+			printf("\tE. Return\n");				// quit program
+
+			printf("\tEnter your choice: ");
+			scanf("%c", choice);
+			if (choice[0] == 'A')
 			{
-				printf("\tEnter name of website: ");
-				scanf("%s", website);	// find better way to store in string
-
-				if (numOfAttempts == 5)
-				{
-					printf("Number of attempts exceeded 5.\n");
-					break;
-				}
+				printf("\tEnter username: ");
+				scanf("%s", username);	// find better way to store in string
+				myLoginFile.changeInFile(website, username, CHANGE_USER);
 			}
-			if (result)	// website exists in map, let user change credentials
+			else if (choice[0] == 'B')
 			{
-				// change username, password or both?
-				printf("\tA. Change username\n");	// store credentials in text file
-				printf("\tB. Change Password\n");	// change password of already existing credentials
-				printf("\tC. Change both\n");				// quit program
-				printf("\tD. Return\n");				// quit program
-
-				printf("\tEnter your choice: ");
-				scanf("%c", choice);
-				if (choice[0] == 'A')
-				{
-					printf("\tEnter username: ");
-					scanf("%s", username);	// find better way to store in string
-					loginCred.setNewUserName(website, username);
-				}
-				else if (choice[0] == 'B')
-				{
-					printf("\tEnter password: ");
-					scanf("%s", password);	// find better way to store in string
-					loginCred.setNewPassword(website, password);
-				}
-				else if (choice[0] == 'C')
-				{
-					printf("\tEnter username: ");
-					scanf("%s", username);	// find better way to store in string
-					loginCred.setNewUserName(website, username);
-					printf("\tEnter password: ");
-					scanf("%s", password);	// find better way to store in string
-					loginCred.setNewPassword(website, password);
-				}
-				else
-				{
-
-				}
+				printf("\tEnter password: ");
+				scanf("%s", password);	// find better way to store in string
+				myLoginFile.changeInFile(website, password, CHANGE_PASS);
 			}
-
+			else if (choice[0] == 'C')
+			{
+				printf("\tEnter username: ");
+				scanf("%s", username);	// find better way to store in string
+				printf("\tEnter password: ");
+				scanf("%s", password);	// find better way to store in string
+				myLoginFile.changeInFile(website, username, password);
+			}
+			else if (choice[0] == 'D')
+			{
+				printf("\tEnter username: ");
+				scanf("%s", username);	// find better way to store in string
+				printf("\tEnter password: ");
+				scanf("%s", password);	// find better way to store in string
+				myLoginFile.deleteInFile(website);
+			}
+			else
+			{
+				continue;
+			}
 		}
 		if (choice[0] == 'C')
 		{

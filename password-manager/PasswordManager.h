@@ -14,26 +14,27 @@ public:
 	const unsigned char* getKey(void);	// HOW TO HIDE THE KEY?
 	const unsigned char* getInitVector(void);	// HOW TO HIDE THE INIT_VECTOR?
 	const string getCredentials(string whichWebsite);
+	const string getAuthString();
 	int storeCredentials(char* website, char* username, char* password);
 	int setEncryptedPassword(char* password);
 	unsigned char* getEncryptedPassword(void);
-	int setNewUserName(string website, string password);
-	int setNewPassword(string website, string password);
 	bool validatePassword(const char* password);
-	int checkIfExists(string website);
-	char* generateSalt(int length);
+	vector<uint8_t> generateSalt(int length);
+	string calculate_hash();
+	unsigned long hash(string& str, int len);
 
 private:
 	char whichLogin[126];
 	char userName[126];
 	unordered_map<string, string> loginCreds;
 
-	const unsigned char* encryptionKey;
-	const unsigned char* initVector;
+	unsigned char* encryptionKey;
+	unsigned char* initVector;
 	string encryptedPass;	// stores encrypted password
 	unsigned char ciphertext[256];
 	unsigned char plaintext[256];
 	int result;
+	string authUserString;
 
 	// private member functions
 	/*Name: Encrypt()
