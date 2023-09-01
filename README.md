@@ -1,4 +1,4 @@
-# password-manager
+# password-manager (work-in-progress)
 
 1. Developed a password manager application using C++ and OpenSSL.
 2. The application takes a login credential, verifies the password, and generates an encrypted string before storing it in a hash map.
